@@ -21,7 +21,7 @@ Necessary styles for smaller screen devices,
 Librem 5/Pinephone etc.
 */
 @media screen and (max-width: 410px) {
-  .app-info-button {
+  .app-info-button, .export-docx-button {
     display: none !important;
   }
 
