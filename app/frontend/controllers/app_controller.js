@@ -202,6 +202,33 @@ class AppController {
     uiHelper.configureButtonStyles('.verse-list-menu');
   }
 
+  onVerseListScroll() {
+    const verseListFrame = verseListController.getCurrentVerseListFrame()[0];
+    const verseListMenu = this.getCurrentVerseListMenu()[0];
+    let currentScrollPosition = verseListFrame.scrollTop;
+
+    if (!getPlatform().isFullScreen()) {
+      if (this.previousScrollPosition > currentScrollPosition) {
+        clearTimeout(this.showMenuTimer);
+        clearTimeout(this.hideMenuTimer);
+
+        this.showMenuTimer = setTimeout(() => {
+          verseListMenu.style.display = 'flex';
+        }, 500);
+
+      } else {
+        clearTimeout(this.hideMenuTimer);
+        clearTimeout(this.showMenuTimer);
+
+        this.hideMenuTimer = setTimeout(() => {
+          verseListMenu.style.display = 'none';
+        }, 500);
+      }
+    }
+
+    this.previousScrollPosition = currentScrollPosition;
+  }
+
   async onTabAdded(tabIndex=0) {
     this.hideAllMenus();
     
@@ -211,6 +238,16 @@ class AppController {
 
     if (currentTab) {
       const verseListContainer = verseListController.getCurrentVerseListFrame(tabIndex).parent();
+      const verseListFrame = verseListController.getCurrentVerseListFrame(tabIndex)[0];
+      this.previousScrollPosition = verseListFrame.scrollTop;
+      this.showMenuTimer = null;
+      this.hideMenuTimer = null;
+
+      verseListFrame.onscroll = () => {
+        if (window.innerWidth <= 600) {
+          this.onVerseListScroll();
+        }
+      };
 
       currentTab.tab_search = new TabSearch();
       currentTab.tab_search.init(

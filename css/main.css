@@ -192,7 +192,7 @@ h2:nth-of-type(1) {
 }
 
 #app-container.fullscreen .verse-list-menu {
-  display: none;
+  display: none !important;
 }
 
 .verse-list-menu-line {
