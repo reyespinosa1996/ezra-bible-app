@@ -20,6 +20,22 @@
 Necessary styles for smaller screen devices,
 Librem 5/Pinephone etc.
 */
+@media screen and (max-width: 410px) {
+  .app-info-button {
+    display: none !important;
+  }
+
+  #tag-list-stats {
+    display: none !important;
+  }
+
+  /*Make dialogs not go out of screen*/
+  .ui-dialog {
+    max-width: 80vw !important;
+    max-height: 80vh !important;
+  }
+}
+
 @media screen and (max-width: 600px) {
   .verse-list-menu .fg-button {
     margin-right: 2px;
@@ -145,6 +161,10 @@ Librem 5/Pinephone etc.
     font-size: 0.8em;
   }
 
+  #tool-panel {
+    font-size: 0.9em;
+  }
+
   /* tag dropdown*/
   #tag-selection-menu {
     max-width: 69vw;
@@ -162,6 +182,10 @@ Librem 5/Pinephone etc.
     max-width: 30vw;
     padding: 2px;
   }
+
+  #new-standard-tag-title-input, #rename-standard-tag-title-input {
+    width: 15em !important;
+  }
 }
 
 @media screen and (max-height: 600px) {
@@ -169,3 +193,4 @@ Librem 5/Pinephone etc.
     height: 200px;
   }
 }
+
