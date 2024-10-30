@@ -20,6 +20,7 @@ const eventController = require('../../controllers/event_controller.js');
 const VerseBox = require("../../ui_models/verse_box.js");
 const { getPlatform } = require('../../helpers/ezra_helper.js');
 const VerseBoxHelper = require('../../helpers/verse_box_helper.js');
+const sectionLabelHelper = require('../../helpers/section_label_helper.js');
 
 /**
  * The CommentaryPanel component implements a tool panel that shows Bible commentaries for selected verses
@@ -28,8 +29,12 @@ const VerseBoxHelper = require('../../helpers/verse_box_helper.js');
  */
 class CommentaryPanel {
   constructor() {
-    eventController.subscribe('on-verses-selected', (verseSelectionDetails) => {
-      this.performRefresh(verseSelectionDetails.selectedElements);
+    this.refreshBlocked = false;
+
+    eventController.subscribe('on-verses-selected', async (verseSelectionDetails) => {
+      if (!this.refreshBlocked) {
+        await this.performRefresh(verseSelectionDetails.selectedElements);
+      }
     });
 
     let refreshWithSelection = () => {
@@ -58,8 +63,20 @@ class CommentaryPanel {
     this._verseBoxHelper = new VerseBoxHelper();
   }
 
+  setRefreshBlocked(refreshBlocked) {
+    this.refreshBlocked = refreshBlocked;
+  }
+
+  getMainContent() {
+    return document.getElementById('commentary-panel-main-content');
+  }
+
   getBoxContent() {
     return document.getElementById('commentary-panel-content');
+  }
+
+  getReferenceBox() {
+    return document.getElementById('commentary-panel-reference-box');
   }
 
   showLoadingIndicator() {
@@ -83,8 +100,8 @@ class CommentaryPanel {
   }
 
   showHelpBox() {
-    let panelContent = document.getElementById('commentary-panel-content');
-    panelContent.innerHTML = "";
+    this.getBoxContent().innerHTML = "";
+    this.getReferenceBox().innerHTML = "";
 
     let helpBox = this.getHelpBox();
     helpBox.classList.remove('hidden');
@@ -163,13 +180,17 @@ class CommentaryPanel {
   }
 
   async performContentRefresh(selectedVerseBoxes=undefined) {
-    let commentaryContent = await this.getCommentaryContent(selectedVerseBoxes);
+    const commentaryContent = await this.getCommentaryContent(selectedVerseBoxes);
 
     if (platformHelper.isCordova()) {
       this.hideLoadingIndicator();
     }
 
     this.getBoxContent().innerHTML = commentaryContent;
+    this.getMainContent().scrollTop = 0;
+
+    this.hideReferenceBox();
+    this.getReferenceBox().innerHTML = "";
 
     this.applyParagraphs();
 
@@ -184,6 +205,41 @@ class CommentaryPanel {
     commentaryCopyButtons.forEach((button) => {
       button.addEventListener('click', (event) => {
         this.handleCopyCommentaryButtonClick(event);
+      });
+    });
+
+    let referenceElements = this.getBoxContent().querySelectorAll('reference');
+    referenceElements.forEach((reference) => {
+      reference.addEventListener('click', (event) => {
+        this.handleReferenceClick(event);
+      });
+    });
+
+    let scripRefElements = this.getBoxContent().querySelectorAll('.sword-scripref');
+    scripRefElements.forEach((scripRef) => {
+      scripRef.addEventListener('click', (event) => {
+        this.handleReferenceClick(event);
+      });
+    });
+
+    let accordionButtons = this.getBoxContent().querySelectorAll('.commentary-accordion-button');
+    accordionButtons.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.handleAccordionButtonClick(event.target);
+      });
+    });
+
+    let commentaryHeaders = this.getBoxContent().querySelectorAll('.commentary-name');
+    commentaryHeaders.forEach((header) => {
+      header.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        let button = event.target.parentNode.querySelector('.commentary-accordion-button');
+        this.handleAccordionButtonClick(button);
       });
     });
 
@@ -225,6 +281,112 @@ class CommentaryPanel {
     getPlatform().copyToClipboard(commentaryText, commentaryTextHtml);
 
     uiHelper.showSuccessMessage(i18n.t('commentary-panel.copy-commentary-to-clipboard-success'));
+  }
+
+  handleAccordionButtonClick(button) {
+    let commentary = button.closest('.commentary');
+    let commentaryContent = commentary.querySelector('.commentary-content');
+
+    let isCollapsed = commentaryContent.style.display == 'none';
+
+    if (isCollapsed) {
+      $(commentaryContent).slideDown(400, () => {
+        button.classList.remove('fa-circle-chevron-right');
+        button.classList.add('fa-circle-chevron-down');
+      });
+    } else {
+      $(commentaryContent).slideUp(400, () => {
+        button.classList.remove('fa-circle-chevron-down');
+        button.classList.add('fa-circle-chevron-right');
+      });
+    }
+  }
+
+  async handleReferenceClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    let newTabOption = app_controller.optionsMenu._verseListNewTabOption;
+
+    await app_controller.verse_list_popup.initCurrentCommentaryXrefs(event.target);
+
+    if (app_controller.verse_list_popup.currentXrefs.length > 2 || platformHelper.isMobile()) {
+      this.hideReferenceBox();
+
+      if (newTabOption.isChecked) {
+        await app_controller.verse_list_popup.openVerseListInNewTab();
+      } else {
+        await app_controller.verse_list_popup.openVerseListPopup(event, 'COMMENTARY_XREFS');
+      }
+
+    } else if (app_controller.verse_list_popup.currentXrefs.length > 0) {
+      await this.renderReferenceVerses(app_controller.verse_list_popup.currentXrefs);
+      event.target.scrollIntoView({ block: "nearest" });
+    }
+  }
+
+  async renderReferenceVerses(references) {
+    const bibleTranslationId = app_controller.tab_controller.getTab().getBibleTranslationId();
+    let verses = await ipcNsi.getVersesFromReferences(bibleTranslationId, references);
+    let verseReferences = [];
+    let bibleBookStats = app_controller.text_controller.getBibleBookStatsFromVerses(verses);
+    let multipleBooks = Object.keys(bibleBookStats).length > 1;
+
+    let multipleVerses = verses.length > 1;
+    let verseContent = "";
+
+    verses.forEach((verse) => {
+      if (multipleVerses && !multipleBooks) {
+        verseContent += `<sup>${verse.verseNr}</sup>`;
+      }
+
+      verseContent += verse.content + "<br/>";
+
+      if (multipleBooks) {
+        let verseReference = verse.bibleBookShortTitle + ' ' + verse.chapter + window.reference_separator + verse.verseNr;
+        verseContent += verseReference + "<br/><br/>";
+      }
+
+      let shortVerseReference = verse.chapter + window.reference_separator + verse.verseNr;
+      verseReferences.push(shortVerseReference);
+    });
+
+    if (!multipleBooks) {
+      let currentBook = Object.keys(bibleBookStats)[0];
+      let formattedVerseList = await sectionLabelHelper.formatVerseList(verseReferences, currentBook, window.reference_separator);
+
+      verseContent += `<div>${currentBook} ${formattedVerseList}</div>`;
+    }
+
+    verseContent = '<div class="panel-content verse-text" style="margin-top: 1em;">' + verseContent + '</div>';
+
+    let tabIconTitle = i18n.t('bible-browser.open-new-tab');
+    let tabIcon = `<div class="tab-icon icon" title="${tabIconTitle}"><i class="fa-solid fa-arrow-up-right-from-square"></i></div>`;
+    let closeIcon = '<div class="close-icon icon" style="font-size: 110%"><i class="fa-solid fa-rectangle-xmark"></i></div>';
+
+    const commentaryPanelReferenceBox = this.getReferenceBox();
+    commentaryPanelReferenceBox.innerHTML = closeIcon + tabIcon + verseContent;
+
+    commentaryPanelReferenceBox.querySelector('.close-icon').addEventListener('click', (event) => {
+      this.hideReferenceBox();
+    });
+
+    commentaryPanelReferenceBox.querySelector('.tab-icon').addEventListener('click', (event) => {
+      this.hideReferenceBox();
+      app_controller.verse_list_popup.openVerseListInNewTab();
+    });
+
+    this.showReferenceBox();
+  }
+
+  showReferenceBox() {
+    this.getMainContent().classList.add('with-reference-box');
+    this.getReferenceBox().style.display = 'block';
+  }
+
+  hideReferenceBox() {
+    this.getMainContent().classList.remove('with-reference-box');
+    this.getReferenceBox().style.display = 'none';
   }
 
   processCommentaryHtml(htmlInput) {
@@ -279,9 +441,11 @@ class CommentaryPanel {
 
           if (verseCommentary != null && verseCommentary.length != 0) {
             commentaryContent += `
-            <div class='commentary module-code-${currentCommentary.name.toLowerCase()}'>
+            <div class='commentary module-code-${currentCommentary.name.toLowerCase()}' module='${currentCommentary.name}'>
               <h3>
-                <span class='commentary-name'>${currentCommentary.description}</span>
+                <i class="fa-solid fa-circle-chevron-down commentary-accordion-button"></i>
+
+                <div class='commentary-name'>${currentCommentary.description}</div>
 
                 <div class='module-info-button fg-button ui-corner-all ui-state-default'
                     i18n='[title]menu.show-module-info' title='${moduleInfoButtonTitle}' module='${currentCommentary.name}'>

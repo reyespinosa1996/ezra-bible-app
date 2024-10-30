@@ -107,12 +107,6 @@ class TextController {
 
     await app_controller.navigation_pane.initNavigationPaneForCurrentView(tabIndex);
 
-    if (tabIndex === undefined) {
-      if (app_controller.verse_selection != null) {
-        app_controller.verse_selection.clearVerseSelection();
-      }
-    }
-
     var textType = currentTab != null ? currentTab.getTextType() : null;
     if (textType != 'book') {
       app_controller.book_selection_menu.clearSelectedBookInMenu();
@@ -124,6 +118,12 @@ class TextController {
     }
 
     if (resetView && (tabIndex == 0 || tabIndex == undefined)) {
+      if (tabIndex === undefined) {
+        if (app_controller.verse_selection != null) {
+          app_controller.verse_selection.clearVerseSelection();
+        }
+      }
+
       if (currentTab.hasTextTypeChanged()) {
         app_controller.navigation_pane.resetNavigationPane(tabIndex, true);
       }
@@ -399,7 +399,7 @@ class TextController {
 
       const hasNotes = bookNotes !== null || getReferenceIdsFromNotes(verseNotes, startVerseNumber, startVerseNumber + numberOfVerses - 1).length > 0;
 
-      renderFunction(verses_as_html, hasNotes);
+      await renderFunction(verses_as_html, hasNotes);
       
     } else if (renderType == 'docx') {
       const notes = {
@@ -810,7 +810,7 @@ class TextController {
       app_controller.module_search_controller.highlightSearchResults(currentSearchTerm, tabIndex);
     }
 
-    if (renderChart && (listType == 'search_results' || listType == 'tagged_verses')) {
+    if (renderChart && (listType == 'search_results' || listType == 'tagged_verses' || listType == 'xrefs')) {
       await app_controller.verse_statistics_chart.repaintChart(tabIndex, listType);
 
       if (listType == 'tagged_verses') {
@@ -824,7 +824,7 @@ class TextController {
       }
 
     } else {
-      if (listType != 'search_results' && listType != 'tagged_verses') {
+      if (listType != 'search_results' && listType != 'tagged_verses' && listType != 'xrefs') {
         await app_controller.verse_statistics_chart.resetChart(tabIndex);
       }
 

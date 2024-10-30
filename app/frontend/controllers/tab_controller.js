@@ -255,7 +255,10 @@ class TabController {
 
     for (let i = 0; i < tabCount; i++) {
       let currentMetaTab = this.metaTabs[i];
-
+      if (currentMetaTab == null) {
+         continue;
+      }
+      
       if (cacheOutdated || cacheInvalid || force) {
         currentMetaTab.cachedText = null;
         currentMetaTab.cachedReferenceVerse = null;
@@ -461,6 +464,12 @@ class TabController {
   }
 
   saveTabScrollPosition(tabIndex=undefined) {
+    // If the tab that we shall save the scroll position for does not exist we cancel this operation.
+    // This may happen when a tab is closed.
+    if (tabIndex != null && tabIndex >= this.metaTabs.length) {
+      return;
+    }
+    
     var metaTab = this.getTab(tabIndex);
     var firstVerseListAnchor = verseListController.getFirstVisibleVerseAnchor();
 
@@ -526,7 +535,7 @@ class TabController {
     return selectedTabsPanelId;
   }
 
-  addTab(metaTab = undefined, interactive = true, bibleTranslationId = undefined) {
+  async addTab(metaTab = undefined, interactive = true, bibleTranslationId = undefined) {
     var initialLoading = true;
     if (metaTab === undefined) {
       initialLoading = false;
@@ -564,7 +573,7 @@ class TabController {
     this.updateFirstTabCloseButton();
 
     if (!initialLoading) {
-      eventController.publish('on-tab-added', newTabIndex);
+      await eventController.publish('on-tab-added', newTabIndex);
     }
   }
 
@@ -912,12 +921,16 @@ class TabController {
       isInstantLoadingBook = await app_controller.translation_controller.isInstantLoadingBook(newBibleTranslationId, currentTab.getBook());
     }
 
+    app_controller.commentaryPanel.setRefreshBlocked(true);
+
     if (currentTab.getTextType() == 'search_results') {
       await app_controller.text_controller.prepareForNewText(true, true);
       app_controller.module_search_controller.startSearch(null, this.getSelectedTabIndex(), currentTab.getSearchTerm());
     } else {
       if (!this.isCurrentTabEmpty()) {
         this.saveTabScrollPosition();
+
+        let selectedVerses = await app_controller.verse_selection.getSelectionAsVerseObjects(oldBibleTranslationId, newBibleTranslationId);
 
         await app_controller.text_controller.prepareForNewText(false, false);
         await app_controller.text_controller.requestTextUpdate(
@@ -939,8 +952,12 @@ class TabController {
         if (currentTab.getTextType() == 'book') {
           app_controller.tag_statistics.highlightFrequentlyUsedTags();
         }
+
+        app_controller.verse_selection.applySelectionFromVerseObjects(selectedVerses);
       }
     }
+
+    app_controller.commentaryPanel.setRefreshBlocked(false);
   }
 
   onTranslationRemoved(translationId, translationList) {

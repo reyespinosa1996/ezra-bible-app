@@ -394,6 +394,8 @@ Librem 5/Pinephone etc.
 
   .module-settings-assistant-init > section {
     padding: 0.4em 2em !important;
+    width: 75% !important;
+    margin-top: 1em !important;
   }
 
   #module-settings-assistant .assistant-note {
@@ -696,12 +698,31 @@ Librem 5/Pinephone etc.
   #info-popup-module-select-button {
     margin-top: 1em !important;
   }
+
+  .commentary-name {
+    max-width: 14em;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
 }
 
 /* PORTRAIT */
 @media screen and (max-aspect-ratio: 13/10) and (max-width: 450px) {
   #panel-switches {
     padding-top: 0.3em;
+  }
+}
+
+/* PORTRAIT for small resolution phones */
+@media screen and (max-aspect-ratio: 13/10) and (max-width: 360px) {
+  /* The copy button does not fit on smaller screens */
+  .copy-button {
+    display: none !important;
+  }
+
+  .commentary-name {
+    max-width: 10em;
   }
 }
 

@@ -207,12 +207,12 @@
     "send-crash-reports": "Odoslať chybové hlásenia",
     "welcome-to-ezra-bible-app": "Vitajte v projekte Ezra!",
     "type-face": {
-      "configure-typeface": "Konfigurácia písma textu Biblie",
+      "configure-typeface": "Configure content typeface",
       "sans-serif": "Sans serif",
       "serif": "Serif",
       "custom": "Vlastné",
-      "bible-text-font-family": "Rodina písiem textu Biblie",
-      "custom-bible-text-font": "Vlastné písmo textu Biblie"
+      "content-font-family": "Content font family",
+      "custom-content-font": "Custom content font"
     }
   },
   "data-privacy": {
@@ -259,8 +259,6 @@
       "hide-in-tab-search-form": "Esc",
       "jump-to-next-search-occurance": "Enter",
       "jump-to-previous-occurance": "Shift + Enter",
-      "previous-chapter": "Vľavo",
-      "next-chapter": "Vpravo",
       "select-all-verses": "Ctrl/Cmd + a",
       "copy-selected-verses-to-clipboard": "Ctrl/Cmd + c",
       "toggle-fullscreen-only-Win-Linux": "F11",
@@ -327,6 +325,7 @@
     "selection": "Výber: ",
     "loading-bible-text": "Nahrávam text Biblie",
     "loading-tagged-verses": "Nahrávam oštítkované verše",
+    "loading-verses": "Loading verses",
     "loading-verse-translations": "Nahrávam preklady veršov",
     "searching-for": "Hľadať",
     "search-result-header": "Výsledky hľadania pre ",

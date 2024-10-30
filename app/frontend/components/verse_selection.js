@@ -36,8 +36,6 @@ class VerseSelection {
   constructor() {
     this.selectedVerseBoxElements = [];
     this.selectedVerseReferences = null;
-    this.previousSelectionExisting = false;
-    this.previousFirstVerseReference = null;
     this.previousVerseCount = null;
     this.verseReferenceHelper = null;
     this.previousSelectionIndex = -1;
@@ -80,9 +78,10 @@ class VerseSelection {
     });
 
     eventController.subscribe('on-tab-selected', (tabIndex) => {
-      let verseList = verseListController.getCurrentVerseList(tabIndex);
-      this.updateSelected(verseList);
+      let verseListFrame = verseListController.getCurrentVerseListFrame(tabIndex);
+      this.updateSelected(verseListFrame);
       this.updateViewsAfterVerseSelection();
+      this.publishVersesSelected();
     });
 
     eventController.subscribe('on-all-translations-removed', () => {
@@ -119,29 +118,13 @@ class VerseSelection {
       // eslint-disable-next-line no-unused-vars
       stop: (event, ui) => {
         this.updateSelected(verseList);
+        this.updateViewsAfterVerseSelection();
+        this.publishVersesSelected();
 
-        let currentFirstVerseReference = this.getFirstSelectedVerseReferenceId();
-        let currentVerseCount = this.selectedVerseBoxElements.length;
-
-        if (this.previousSelectionExisting && 
-            currentFirstVerseReference == this.previousFirstVerseReference &&
-            currentVerseCount == this.previousVerseCount) {
-
-          this.clearVerseSelection(true, undefined);
-          this.updateViewsAfterVerseSelection();
-          this.previousSelectionExisting = false;
+        if (this.selectedVerseBoxElements.length > 0) {
+          this.previousVerseCount = this.selectedVerseBoxElements.length;
         } else {
-          this.updateViewsAfterVerseSelection();
-          this.publishVersesSelected();
-          this.previousSelectionExisting = true;
-
-          if (this.selectedVerseBoxElements.length > 0) {
-            this.previousFirstVerseReference = this.getFirstSelectedVerseReferenceId();
-            this.previousVerseCount = this.selectedVerseBoxElements.length;
-          } else {
-            this.previousVerseCount = 0;
-            this.previousFirstVerseReference = null;
-          }
+          this.previousVerseCount = 0;
         }
       },
 
@@ -182,16 +165,16 @@ class VerseSelection {
     });
   }
 
-  getFirstSelectedVerseReferenceId() {
+  getFirstSelectedVerseBox() {
     if (this.selectedVerseBoxElements != null && this.selectedVerseBoxElements.length > 0) {
-      return this.selectedVerseBoxElements[0].getAttribute('verse-reference-id');
+      return this.selectedVerseBoxElements[0];
     } else {
       return null;
     }
   }
 
-  publishVersesSelected(tabIndex=undefined) {
-    eventController.publishAsync('on-verses-selected', {
+  async publishVersesSelected(tabIndex=undefined) {
+    await eventController.publishAsync('on-verses-selected', {
       'selectedElements': this.selectedVerseBoxElements,
       'selectedVerseTags': this.getCurrentSelectionTags(),
       'tabIndex': tabIndex
@@ -219,28 +202,30 @@ class VerseSelection {
     return this.selectedVerseBoxElements.length > 0;
   }
 
-  setVerseAsSelection(verseText) {
+  async setVerseAsSelection(verseText) {
     if (verseText != null) {
       this.clearVerseSelection(false, undefined);
       verseText.classList.add('ui-selected');
       verseText.classList.add('ui-selectee');
       this.selectedVerseBoxElements.push(verseText);
 
-      this.updateSelected();
+      let verseList = $(verseText.closest('.verse-list-content'));
+
+      this.updateSelected(verseList);
       this.updateViewsAfterVerseSelection();
-      this.publishVersesSelected();
+      await this.publishVersesSelected();
     }
   }
 
-  updateSelected(verseList=undefined) {
-    if (verseList == undefined) {
-      verseList = verseListController.getCurrentVerseList();
+  updateSelected(verseListFrame=undefined) {
+    if (verseListFrame == undefined) {
+      verseListFrame = verseListController.getCurrentVerseListFrame();
     }
 
-    this.selectedVerseBoxElements = verseList.find('.ui-selected').closest('.verse-box');
+    this.selectedVerseBoxElements = verseListFrame.find('.ui-selected').closest('.verse-box');
     var selectedVerseReferences = [];
 
-    for (var i = 0; i < this.selectedVerseBoxElements.length; i++) {
+    for (let i = 0; i < this.selectedVerseBoxElements.length; i++) {
       var verseBox = $(this.selectedVerseBoxElements[i]);
       var currentVerseReferenceAnchor = verseBox.find('a:first').attr('name');
 
@@ -271,10 +256,10 @@ class VerseSelection {
     }
   }
 
-  async getSelectedBooks() {
+  getSelectedBooks() {
     var selectedBooks = [];
 
-    for (var i = 0; i < this.selectedVerseBoxElements.length; i++) {
+    for (let i = 0; i < this.selectedVerseBoxElements.length; i++) {
       var currentVerseBox = this.selectedVerseBoxElements[i];
       var currentBookShortName = new VerseBox(currentVerseBox).getBibleBookShortTitle();
 
@@ -286,10 +271,10 @@ class VerseSelection {
     return selectedBooks;
   }
 
-  element_list_to_xml_verse_list(element_list) {
+  elementListToXmlVerseList(element_list) {
     var xml_verse_list = "<verse-list>";
 
-    for (var i = 0; i < element_list.length; i++) {
+    for (let i = 0; i < element_list.length; i++) {
       var verse_box_element = $(element_list[i]).closest('.verse-box')[0];
       var verse_reference = verse_box_element.querySelector('.verse-reference-content').innerText;
       var verse_reference_id = "";
@@ -313,17 +298,58 @@ class VerseSelection {
     return xml_verse_list;
   }
 
-  getCurrentVerseSelectionAsXml() {
+  getSelectionAsXml() {
     var selected_verse_elements = this.selectedVerseBoxElements;
 
-    return (this.element_list_to_xml_verse_list(selected_verse_elements));
+    return (this.elementListToXmlVerseList(selected_verse_elements));
   }
 
-  getCurrentVerseSelectionAsVerseReferenceIds() {
+  async getSelectionAsVerseObjects(sourceBibleTranslationId=undefined, targetBibleTranslationId=undefined) {
+    let elementList = this.selectedVerseBoxElements;
+    let verseObjects = [];
+    let absoluteVerseNumbers = [];
+
+    for (let i = 0; i < elementList.length; i++) {
+      let verseBoxElement = elementList[i].closest('.verse-box');
+      let verseBox = new VerseBox(verseBoxElement);
+
+      let currentVerseObject = await verseBox.getVerseObject(window.reference_separator,
+                                                             sourceBibleTranslationId,
+                                                             targetBibleTranslationId);
+
+      if (!absoluteVerseNumbers.includes(currentVerseObject._absoluteVerseNr)) {
+        absoluteVerseNumbers.push(currentVerseObject._absoluteVerseNr);
+        verseObjects.push(currentVerseObject);
+      }
+    }
+
+    return verseObjects;
+  }
+
+  applySelectionFromVerseObjects(verseObjects) {
+    const currentVerseList = verseListController.getCurrentVerseList();
+
+    if (verseObjects.length > 0) {
+      verseObjects.forEach((verseObject) => {
+        let currentVerseBox = currentVerseList[0].querySelector('.verse-nr-' + verseObject._absoluteVerseNr);
+
+        if (currentVerseBox != null) {
+          let currentVerseText = currentVerseBox.querySelector('.verse-text');
+          currentVerseText.classList.add('ui-selected');
+        }
+      });
+
+      this.updateSelected();
+      this.updateViewsAfterVerseSelection();
+      this.publishVersesSelected();
+    }
+  }
+
+  getSelectionAsVerseReferenceIds() {
     var selected_verse_ids = new Array;
     var selected_verse_elements = this.selectedVerseBoxElements;
     
-    for (var i = 0; i < selected_verse_elements.length; i++) {
+    for (let i = 0; i < selected_verse_elements.length; i++) {
       var verse_box_element = selected_verse_elements[i];
       var verse_box = new VerseBox(verse_box_element);
       var verse_reference_id = verse_box.getVerseReferenceId();

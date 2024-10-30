@@ -839,8 +839,9 @@ class TagsController {
         });
 
         await eventController.publishAsync('on-tag-group-multiple-members-changed');
+      }
 
-      } else {
+      if (!tags_controller.tagGroupUsed() || tags_controller.permanently_delete_tag) {
         await eventController.publishAsync('on-tag-deleted', tags_controller.tag_to_be_deleted);
       }
 
@@ -853,7 +854,7 @@ class TagsController {
     var checkboxTag = tags_controller.getCheckboxTag(tag_id);
     checkboxTag.detach();
 
-    if (!tags_controller.tagGroupUsed()) {
+    if (!tags_controller.tagGroupUsed() || tags_controller.permanently_delete_tag) {
       if (this.tag_store.latest_tag_id != null && this.tag_store.latest_tag_id == tag_id) {
         this.tag_store.latest_tag_id = null;
         await this.tag_store.refreshTagList();
@@ -867,9 +868,9 @@ class TagsController {
       return ($(this).html() == tag_id);
     });
 
-    if (!tags_controller.tagGroupUsed()) {
+    if (!tags_controller.tagGroupUsed() || tags_controller.permanently_delete_tag) {
       var verse_list = $.create_xml_doc(
-        app_controller.verse_selection.element_list_to_xml_verse_list(tag_data_elements)
+        app_controller.verse_selection.elementListToXmlVerseList(tag_data_elements)
       );
 
       tags_controller.changeVerseListTagInfo(tag_id, tag_title, verse_list, "remove");
@@ -949,8 +950,8 @@ class TagsController {
     var cb_label = checkboxTag.find('.cb-label').html();
     var tag_button_is_active = tag_button.classList.contains('active');
 
-    var current_verse_selection = app_controller.verse_selection.getCurrentVerseSelectionAsXml(); 
-    var current_verse_reference_ids = app_controller.verse_selection.getCurrentVerseSelectionAsVerseReferenceIds();
+    var current_verse_selection = app_controller.verse_selection.getSelectionAsXml(); 
+    var current_verse_reference_ids = app_controller.verse_selection.getSelectionAsVerseReferenceIds();
 
     checkboxTag.find('.cb-label').removeClass('underline');
     checkboxTag.find('.cb-label-postfix').html('');
