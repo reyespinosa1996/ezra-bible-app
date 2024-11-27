@@ -93,6 +93,8 @@
     "step-modules": {
       "select-module": "Veillez choisir les {{module_type}} à installer.",
       "module-display-preferences": "Préférences de filtre :",
+      "all-modules": "All {{module_type, accusative}}",
+      "regular-dicts": "Regular dictionaries",
       "module-with": "{{module_type, capitalize}} avec {{feature_type, instrumental}}",
       "module-already-installed_masculine": "{{module_type, singular-demonstrative-pronoun}} est déjà installé",
       "module-already-installed_feminine": "{{module_type, singular-demonstrative-pronoun}} est déjà installée",
@@ -121,9 +123,6 @@
       "enter-unlock-key": "{{moduleId}} est protégé par une licence. Veuillez entrer la clé de déverrouillage !",
       "unlock-failed": "Le déverrouillage a échoué ! Veuillez entrer la bonne clé de déverrouillage."
     }
-  },
-  "module-sync": {
-    "module-sync-header": "Installation de modules supplémentaires"
   },
   "general": {
     "ezra-bible-app": "Ezra Bible App",
@@ -363,6 +362,7 @@
     "show-paragraphs": "Afficher les paragraphes",
     "red-letters": "Surligner les paroles de Jésus en rouge",
     "show-dictionary": "Afficher le dictionnaire",
+    "show-wordstudy": "Show word study",
     "show-book-chapter-navigation": "Afficher la navigation dans les livres / chapitres",
     "show-header-navigation": "Afficher la navigation des titres",
     "show-tab-search": "Montrer l’onglet de recherche courant",
@@ -373,6 +373,7 @@
     "use-tag-group-filter": "Utiliser le filtre de groupe d'étiquettes",
     "show-notes": "Montrer les notes",
     "limit-notes-display-size": "Limiter la taille des notes",
+    "limit-text-width": "Limit Bible text width",
     "use-tags-column": "Utiliser des colonnes d’étiquettes",
     "select-chapter-before-loading": "Ouvrir les livres avec sélection de chapitre",
     "use-system-theme": "Thème du système",
@@ -408,10 +409,10 @@
 
     }
   },
-  "dictionary-panel": {
-    "greek-dict": "Dictionnaire grec",
-    "hebrew-dict": "Dictionnaire hébreu",
-    "default-header": "<b>Dictionnaire</b>",
+  "word-study-panel": {
+    "greek-dict": "Greek Word Study",
+    "hebrew-dict": "Hebrew Word Study",
+    "default-header": "<b>Word Study</b>",
     "help-instruction-intro": "Comment afficher les entrées de dictionnaire ici :",
     "help-instruction-part1": "Vérifiez que les dictionnaires Strong (hébreu et grec) sont installés. Statut: <span class='{{ install_status_class }}'>{{ install_status  }}</span>.",
     "help-instruction-part2": "Ouvrez ensuite une traduction avec la fonctionnalité des nombres de Strong.",
@@ -421,6 +422,12 @@
     "find-all-occurrences": "Trouver toutes les occurrences",
     "open-in-blueletter": "Ouvrir dans la Blue Letter Bible",
     "related-strongs": "Strong associés"
+  },
+  "dictionary-panel": {
+    "default-header": "<b>Dictionnaire</b>",
+    "help-no-dicts": "There are no dictionaries available.",
+    "open-in-word-study": "Open in word study",
+    "filter-placeholder": "Filter..."
   },
   "tag-statistics-panel": {
     "default-header": "Statistiques des étiquettes",

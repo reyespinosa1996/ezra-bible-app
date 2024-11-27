@@ -87,6 +87,8 @@
     "step-modules": {  
       "select-module": "Vyberte {{module_type}}, ktorý chcete nainštalovať.",
       "module-display-preferences": "Predvoľby filtra:",
+      "all-modules": "All {{module_type, accusative}}",
+      "regular-dicts": "Regular dictionaries",
       "module-with": "{{module_type, capitalize}} s {{feature_type, instrumental}}",
       "module-already-installed": "Tento {{module_type, singular}} je už nainštalovaný",
       "show-module-info":"Zobraziť informácie",
@@ -111,9 +113,6 @@
       "enter-unlock-key": "{{moduleId}} je chránený licenciou. Prosím, zadajte licenčný kľúč!",
       "unlock-failed": "Odomknutie sa nepodarilo! Prosím, zadajte správny licenčný kľúč."
     }
-  },
-  "module-sync": {
-    "module-sync-header": "Inštalujem prídavné moduly"
   },
   "general": {
     "ezra-bible-app": "Ezra Bible Aplikácia",
@@ -353,6 +352,7 @@
     "show-paragraphs": "Zobraziť odseky",
     "red-letters": "Zvýraznite Ježišove slová červenou farbou",
     "show-dictionary": "Zobraziť slovník",
+    "show-wordstudy": "Show word study",
     "show-book-chapter-navigation": "Zobraziť knihu/navigácia v kapitolách",
     "show-header-navigation": "Zobraziť navigáciu v hlavičke",
     "show-tab-search": "Zobraziť aktuálne vyhľadávanie na karte",
@@ -363,6 +363,7 @@
     "use-tag-group-filter": "Použiť filter skupiny značiek",
     "show-notes": "Zobraziť poznámky",
     "limit-notes-display-size": "Obmedzte veľkosť zobrazenia poznámok",
+    "limit-text-width": "Limit Bible text width",
     "use-tags-column": "Použite stĺpec značiek",
     "select-chapter-before-loading": "Otvoriť knihy s výberom kapitol",
     "use-system-theme": "Systémová téma",
@@ -397,10 +398,10 @@
       "tense-change": "Gramatický čas týchto slov bol zmenený, aby sa uľahčil preklad"
     }
   },
-  "dictionary-panel": {
-    "greek-dict": "Grécky slovník",
-    "hebrew-dict": "Hebrejský slovník",
-    "default-header": "<b>Slovník</b>",
+  "word-study-panel": {
+    "greek-dict": "Greek Word Study",
+    "hebrew-dict": "Hebrew Word Study",
+    "default-header": "<b>Word Study</b>",
     "help-instruction-intro": "Ako tu zobraziť položky slovníka:",
     "help-instruction-part1": "Uistite sa, že sú nainštalované Strongove slovníky (hebrejčina a gréčtina). Stav: <span class='{{ install_status_class }}'>{{ install_status }}</span>.",
     "help-instruction-part2": "Otvorte preklad pomocou funkcie Strong.",
@@ -410,6 +411,12 @@
     "find-all-occurrences": "Nájsť všetky výskyty",
     "open-in-blueletter": "Otvoriť v Blue Letter Bible",
     "related-strongs": "Súvisiace Strongy"
+  },
+  "dictionary-panel": {
+    "default-header": "<b>Slovník</b>",
+    "help-no-dicts": "There are no dictionaries available.",
+    "open-in-word-study": "Open in word study",
+    "filter-placeholder": "Filter..."
   },
   "tag-statistics-panel": {
     "default-header": "Štatistika značiek",

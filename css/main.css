@@ -445,6 +445,7 @@ a.chapter-nav:hover {
   align-items: start;
   flex-wrap: wrap;
 }
+
 .verse-text-and-tags {
   flex: 1 1;
 }
@@ -473,6 +474,7 @@ a.chapter-nav:hover {
   margin-left: 1em;
   width: 30%;
   flex: 0 0 auto;
+  overflow-wrap: break-word;
 }
 
 .tag {
@@ -609,8 +611,11 @@ a.chapter-nav:hover {
   padding: 0.05em;
   position: relative;
   line-height: 1.5em;
-  max-width: 60ch;
   flex: 1 1;
+}
+
+.verse-list-content.limit-width .verse-text {
+  max-width: 60ch;
 }
 
 .verse-text.ui-selected {
@@ -625,10 +630,6 @@ a.chapter-nav:hover {
   cursor: auto;
 }
 
-.bible-sync-dialog .ui-dialog-titlebar-close {
-  display: none;
-}
-
 .tab-search,
 .tab-search-type,
 .tab-search-type option,
@@ -637,7 +638,6 @@ a.chapter-nav:hover {
 #search-type option,
 #search-scope,
 #search-scope option,
-.ui-dialog #bible-sync-box,
 .ui-dialog #db-sync-box,
 .ui-dialog #new-release-info-box,
 .ui-widget:not(.ezra-dialog),
@@ -2010,7 +2010,7 @@ code {
   background-color: gray;
 }
 
-#dictionary-panel-content hr {
+#word-study-panel-content hr {
   border: 1px solid var(--border-color);
 }
 
